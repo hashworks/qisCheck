@@ -1,0 +1,10 @@
+[Unit]
+Description=Run HTWK QIS check periodically
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

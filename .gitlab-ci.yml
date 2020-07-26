@@ -1,0 +1,8 @@
+stages:
+  - test
+
+shellcheck:
+  image: koalaman/shellcheck-alpine:latest
+  stage: test
+  script: 
+    - shellcheck *.sh
