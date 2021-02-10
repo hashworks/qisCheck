@@ -42,9 +42,9 @@ qisContent="$(curl -s "https://qisserver.htwk-leipzig.de/qisserver/rds?state=not
 
 rm -f "$cookieJar" 2>/dev/null
 
-match="$(echo -n "$qisContent" | tr -d '\n' | tr -d '\r' | sed -ne 's/.*<table class="recordTable">\(.*\)<\/table>.*/\1/p' | sed "s/${asi}//g" | sed 's/[0-9]\{2\}\.[0-9]\{2\}\.[0-9]\{4\}//g')"
+match="$(echo -n "$qisContent" | tr -d '\n' | tr -d '\r' | sed -ne 's/.*<table class="recordTable">\(.*\)<\/table>.*/\1/p' | sed "s/${asi}//g" | grep -oP '<tr class=".*<\/tr>' | sed "s/<div class='js-notenuebersicht'[^<]*<\/div>//g" | sed 's/<!--[^-]*-->//g' | sed -r 's/\s+//g')"
 
-if [ -n "$match" ] && echo "$match" | grep -q "1. Semester"; then
+if [ -n "$match" ] && echo "$match" | grep -q "1.Semester"; then
 	matchMD5="$(echo -n "$match" | md5sum | cut -d\  -f1)"
 	echo "Got MD5: $matchMD5"
 	if [ -f "$md5File" ]; then
