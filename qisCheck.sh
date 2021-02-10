@@ -3,8 +3,8 @@
 md5File="${XDG_CACHE_HOME}/qis.md5"
 cookieJar="/tmp/qis.cookiejar"
 
-TYPE="${TYPE:-Bachelor}"
-TELEGRAM_SEND_FILE="${TELEGRAM_SEND_FILE:-Bachelor}"
+STUDY_COURSE="${STUDY_COURSE:-INB}" # Or INM, …
+TELEGRAM_SEND_FILE="${TELEGRAM_SEND_FILE:-false}"
 
 if [[ -z "$TELEGRAM_TOKEN" ]] || [[ -z "$TELEGRAM_CHAT_ID" ]] || [[ -z "$HTWK_SHIBBOLETH_USERNAME" ]] || [[ -z "$HTWK_SHIBBOLETH_PASSWORD" ]]; then
 	echo "Required ENV variables:"
@@ -14,7 +14,7 @@ if [[ -z "$TELEGRAM_TOKEN" ]] || [[ -z "$TELEGRAM_CHAT_ID" ]] || [[ -z "$HTWK_SH
 	echo "* HTWK_SHIBBOLETH_PASSWORD"
 	echo ""
 	echo "Optional ENV variables:"
-	echo "* TYPE"
+	echo "* STUDY_COURSE"
 	echo "* TELEGRAM_SEND_FILE"
 	exit 2
 fi
@@ -38,12 +38,7 @@ fi
 
 echo "Found ASI: $asi"
 
-if [[ "$TYPE" = "Master" ]]; then
-	qisContent="$(curl -s 'https://qisserver.htwk-leipzig.de/qisserver/rds?state=notenspiegelStudent&next=list.vm&nextdir=qispos/notenspiegel/student&menuid=notenspiegelStudent&createInfos=Y&struct=auswahlBaum&nodeID=auswahlBaum|abschluss%3Aabschl%3D90%2Cstgnr%3D1|studiengang%3Astg%3DINM&expand=0' -b "$cookieJar" -c "$cookieJar" -G --data-urlencode "asi=${asi}")"
-else
-	# Bachelor
-	qisContent="$(curl -s 'https://qisserver.htwk-leipzig.de/qisserver/rds?state=notenspiegelStudent&next=list.vm&nextdir=qispos/notenspiegel/student&menuid=notenspiegelStudent&createInfos=Y&struct=auswahlBaum&nodeID=auswahlBaum%7Cabschluss%3Aabschl%3D84%2Cstgnr%3D1%7Cstudiengang%3Astg%3DINB&expand=0' -b "$cookieJar" -c "$cookieJar" -G --data-urlencode "asi=${asi}")"
-fi
+qisContent="$(curl -s "https://qisserver.htwk-leipzig.de/qisserver/rds?state=notenspiegelStudent&next=list.vm&nextdir=qispos/notenspiegel/student&menuid=notenspiegelStudent&createInfos=Y&struct=auswahlBaum&nodeID=auswahlBaum|abschluss%3Aabschl%3D90%2Cstgnr%3D1|studiengang%3Astg%3D${STUDY_COURSE}&expand=0" -b "$cookieJar" -c "$cookieJar" -G --data-urlencode "asi=${asi}")"
 
 rm -f "$cookieJar" 2>/dev/null
 
@@ -56,8 +51,8 @@ if [ -n "$match" ] && echo "$match" | grep -q "1. Semester"; then
 		md5FileContent="$(cat "$md5File")"
 		if [ "$md5FileContent" != "$matchMD5" ]; then
 
-			#echo -n "$qisContent" > "/tmp/debug1_$(date -Is).html"
-			#echo -n "$match" > "/tmp/debug2_$(date -Is).html"
+			#echo -n "$qisContent" > "${XDG_CACHE_HOME}/debug1_$(date -Is).html"
+			#echo -n "$match" > "${XDG_CACHE_HOME}/debug2_$(date -Is).html"
 
 			echo "New MD5, sending messages."
 			telegramMsg "Possible QIS Update! $md5FileContent vs $matchMD5!"
